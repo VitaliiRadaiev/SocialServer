@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <fieldset>
+        <legend>login</legend>
+        <form action="/" id="loginForm">
+            <input type="email" name="email" id="email">
+            <br>
+            <input type="text" name="password" id="password">
+            <input name="image" type="file">
+            <br>
+            <button>login</button>
+        </form>
+    </fieldset>
+
+    <button id="send">send blob</button>
+
+    <br>
+    <br>
+    <fieldset>
+        <legend>Send Message</legend>
+        <form id="createMessageForm">
+            <input type="text" id="dialogId" placeholder="dialog id" value="8">
+            <br>
+            <textarea id="message">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Eveniet, ad.
+            </textarea>
+            <br>
+            <button>send</button>
+        </form>
+    </fieldset>
+
+    <br>
+    <br>
+
+    <div id="messages"></div>
+
+    <script>
+        const loginForm = document.querySelector('#loginForm');
+        const emailInput = document.querySelector('#email');
+        const passwordInput = document.querySelector('#password');
+        const buttonConnect = document.querySelector('#wsConnect');
+        const messagesForm = document.querySelector('#createMessageForm');
+        const dialog = document.querySelector('#dialogId');
+        const message = document.querySelector('#message');
+        const messagesContainer = document.querySelector('#messages');
+        const sendBlobButton = document.querySelector('#send');
+        let userId = null;
+        let blob = null;
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // let res = await fetch('/auth/login', {
+            //     method: "POST",
+            //     // headers: {
+            //     //     'Content-Type': 'application/json;charset=utf-8'
+            //     // },
+            //     // body: JSON.stringify({
+            //     //     email: emailInput.value,
+            //     //     password: passwordInput.value
+            //     // })
+            //     body: new FormData(loginForm)
+            // });
+            // let result = await res.json();
+            // console.log(result);
+            // let resMe = await fetch('/auth/me', {
+            //     headers: {
+            //         'authorization': 'Bearer ' + result.data.jwt
+            //     }
+            // })
+            // let resultMe = await resMe.json();
+            // userId = resultMe.data.id;
+            // createWS(result.data.jwt);
+            let xhr = new XMLHttpRequest();
+            xhr.open('get', '/images/img.jpg'); 
+            xhr.responseType = 'blob';
+
+            xhr.onload = () => {
+                let res = xhr.response;
+                console.log(res);
+                blob = res;
+            }
+
+            xhr.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    console.log(`Получено ${event.loaded} из ${event.total} байт`);
+                } else {
+                    console.log(`Получено ${event.loaded} байт`); // если в ответе нет заголовка Content-Length
+                }
+
+            }
+
+            xhr.send();
+
+        })
+
+        sendBlobButton.addEventListener('pointerup', () => {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/auth/login');
+
+            xhr.upload.onprogress = (event) => {
+                console.log(`Sended ${event.loaded} from ${event.total}`);
+            }
+
+            xhr.upload.onload = () => {
+                console.log('blob sended successful');
+            }
+            let formData = new FormData();
+            formData.append('image', blob);
+            xhr.send(formData);
+        })
+
+        function createWS(jwt) {
+            let ws = new WebSocket(`ws://localhost:8000/ws?token=${jwt}`);
+
+            ws.onopen = (res) => {
+                messagesForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    send(ws);
+                })
+            }
+
+            ws.onmessage = async (event) => {
+                let data = await JSON.parse(event.data);
+                addMessage(userId, data);
+            }
+
+            ws.onclose = (event) => {
+                console.log('WebSocket connection closed.');
+            }
+        }
+
+        function send(ws) {
+            let data = {
+                dialogId: dialog.value,
+                text: message.value
+            }
+            ws.send(JSON.stringify(data));
+        }
+
+        function addMessage(userId, messageData) {
+            messagesContainer.insertAdjacentHTML('beforeend', `
+            <p style="text-align:${userId == messageData.userId ? 'right' : 'left'}" >${new Date(messageData.createdAt).toLocaleString()}<br>${messageData.text}</p>
+            `);
+        }
+
+    </script>
+</body>
+
+</html>

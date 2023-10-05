@@ -1,0 +1,51 @@
+"use strict";
+var _a;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.app = exports.appContainer = exports.appBindings = void 0;
+const inversify_1 = require("inversify");
+const app_1 = require("./app");
+const types_1 = require("./types");
+const logger_service_1 = require("./logger/logger.service");
+const exeption_filter_1 = require("./errors/exeption.filter");
+const users_controller_1 = require("./users/users.controller");
+const prisma_service_1 = require("./database/prisma.service");
+const users_repository_1 = require("./users/users.repository");
+const users_service_1 = require("./users/users.service");
+const config_service_1 = require("./config/config.service");
+const profile_controller_1 = require("./profile/profile.controller");
+const profile_services_1 = require("./profile/profile.services");
+const profile_repository_1 = require("./profile/profile.repository");
+const follow_controller_1 = require("./follow/follow.controller");
+const follow_service_1 = require("./follow/follow.service");
+const websocket_controller_1 = require("./websocket/websocket.controller");
+const dialogs_repository_1 = require("./dialogs/dialogs.repository");
+const dialogs_controller_1 = require("./dialogs/dialogs.controller");
+const dialogs_service_1 = require("./dialogs/dialogs.service");
+exports.appBindings = new inversify_1.ContainerModule((bind) => {
+    bind(types_1.TYPES.Application).to(app_1.App);
+    bind(types_1.TYPES.ILogger).to(logger_service_1.LoggerService).inRequestScope();
+    bind(types_1.TYPES.ExeptionFilter).to(exeption_filter_1.ExeptionFilter).inRequestScope();
+    bind(types_1.TYPES.PrismaService).to(prisma_service_1.PrismaService).inRequestScope();
+    bind(types_1.TYPES.ConfigService).to(config_service_1.ConfigService).inRequestScope();
+    bind(types_1.TYPES.UsersController).to(users_controller_1.UsersController).inRequestScope();
+    bind(types_1.TYPES.UsersService).to(users_service_1.UsersService).inRequestScope();
+    bind(types_1.TYPES.UsersRepository).to(users_repository_1.UsersRepository).inRequestScope();
+    bind(types_1.TYPES.ProfileController).to(profile_controller_1.ProfileController).inRequestScope();
+    bind(types_1.TYPES.ProfileService).to(profile_services_1.ProfileServices).inRequestScope();
+    bind(types_1.TYPES.ProfileRepository).to(profile_repository_1.ProfileRepository).inRequestScope();
+    bind(types_1.TYPES.FollowController).to(follow_controller_1.FollowController).inRequestScope();
+    bind(types_1.TYPES.FollowService).to(follow_service_1.FollowService).inRequestScope();
+    bind(types_1.TYPES.WebsocketController).to(websocket_controller_1.WebsocketController).inRequestScope();
+    bind(types_1.TYPES.DialogsController).to(dialogs_controller_1.DialogsController).inRequestScope();
+    bind(types_1.TYPES.DialogsService).to(dialogs_service_1.DialogsServices).inRequestScope();
+    bind(types_1.TYPES.DialogsRepository).to(dialogs_repository_1.DialogsRepository).inRequestScope();
+});
+function bootstrap() {
+    const appContainer = new inversify_1.Container();
+    appContainer.load(exports.appBindings);
+    const app = appContainer.get(types_1.TYPES.Application);
+    app.init();
+    return { appContainer, app };
+}
+_a = bootstrap(), exports.appContainer = _a.appContainer, exports.app = _a.app;
+//# sourceMappingURL=index.js.map
