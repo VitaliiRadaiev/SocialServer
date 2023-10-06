@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./mainStore.db"
+}
+
+model UserModel {
+  id       Int                @id @default(autoincrement())
+  email    String             @unique
+  password UserPasswordModel?
+  login    String
+  profile  ProfileModel?
+  followed String?
+  dialogs  String?
+}
+
+model UserPasswordModel {
+  user     UserModel @relation(fields: [userId], references: [id])
+  userId   Int       @unique
+  password String
+}
+
+model ProfileModel {
+  user                      UserModel      @relation(fields: [userId], references: [id])
+  userId                    Int            @unique
+  lookingForAJob            Boolean
+  lookingForAJobDescription String?
+  fullName                  String?
+  status                    String?
+  contacts                  ContactsModel?
+  photos                    PhotosModel?
+}
+
+model ContactsModel {
+  github    String?
+  facebook  String?
+  instagram String?
+  twitter   String?
+  website   String?
+  youtube   String?
+  mainLink  String?
+  profile   ProfileModel @relation(fields: [profileId], references: [userId])
+  profileId Int          @unique
+}
+
+model PhotosModel {
+  small     String?
+  large     String?
+  profile   ProfileModel @relation(fields: [profileId], references: [userId])
+  profileId Int          @unique
+}
+
+model DialogModel {
+  id       Int            @id @default(autoincrement())
+  members  String
+  messages MessageModel[]
+}
+
+model MessageModel {
+  id        Int          @id @default(autoincrement())
+  createdAt DateTime?
+  userId    Int
+  text      String
+  dialog    DialogModel @relation(fields: [dialogId], references: [id])
+  dialogId  Int
+}
