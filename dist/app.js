@@ -86,7 +86,7 @@ let App = exports.App = class App {
             yield this.prismaService.connect();
             this.useWebsocket();
             this.server.listen(this.port);
-            this.logger.log(`Server is running on http://localhost:${this.port}`);
+            this.logger.log(`Server is running on http://185.238.2.59:${this.port}`);
         });
     }
 };
